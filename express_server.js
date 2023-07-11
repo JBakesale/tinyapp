@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 3000;
+const PORT = 8000;
 
 app.set("view engine", "ejs");
 
@@ -15,9 +15,9 @@ const urlDatabase = {
 
 function generateRandomString() {
   let randomString = "";
-  const stringLength = 8;
+  const stringLength = 6;
   const letters =
-    "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   for (let i = 0; i < stringLength; i++) {
     const ranChar = Math.random() * letters.length;
     randomString += letters.charAt(ranChar);
@@ -42,19 +42,27 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase };
+  const templateVars = {
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id],
+  };
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  const { longURL } = req.body;
+  const id = generateRandomString();
+  urlDatabase[id] = longURL;
+  const templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
+
 });
+
 
 // app.get("/hello", (req, res) => {
 //   res.send("<html><body>Hello <b>World</b></body></html>\n");
 // });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`Tiny app listening on port ${PORT}!`);
 });
