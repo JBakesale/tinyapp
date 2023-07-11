@@ -5,7 +5,7 @@ const PORT = 8000;
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
+  b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
 
@@ -16,8 +16,7 @@ const urlDatabase = {
 function generateRandomString() {
   let randomString = "";
   const stringLength = 6;
-  const letters =
-    "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const letters = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   for (let i = 0; i < stringLength; i++) {
     const ranChar = Math.random() * letters.length;
     randomString += letters.charAt(ranChar);
@@ -41,21 +40,22 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
-app.get("/urls/:id", (req, res) => {
-  const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id],
-  };
-  res.render("urls_show", templateVars);
-});
-
 app.post("/urls", (req, res) => {
   const { longURL } = req.body;
   const id = generateRandomString();
   urlDatabase[id] = longURL;
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
+});
 
+app.get("/urls/:id", (req, res) => {
+  const { id } = req.params;
+  const longURL = urlDatabase[id];
+  const templateVars = { id, longURL };
+  if (!longURL) {
+    res.status(404).send("URL not found");
+  }
+  res.redirect(longURL);
 });
 
 
@@ -64,5 +64,5 @@ app.post("/urls", (req, res) => {
 // });
 
 app.listen(PORT, () => {
-  console.log(`Tiny app listening on port ${PORT}!`);
+  console.log(`TinyApp listening on port ${PORT}!`);
 });
