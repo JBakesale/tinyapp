@@ -1,20 +1,30 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 const PORT = 3000;
 
-app.set('view engine', 'ejs');
+app.set("view engine", "ejs");
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "9sm5xK": "http://www.google.com",
 };
 
 // app.get("/", (req, res) => {
 //   res.send("Hello!");urls
 // });
 
-function generateRandomString() {};
+function generateRandomString() {
+  let randomString = "";
+  const stringLength = 8;
+  const letters =
+    "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  for (let i = 0; i < stringLength; i++) {
+    const ranChar = Math.random() * letters.length;
+    randomString += letters.charAt(ranChar);
+  }
 
+  return randomString;
+}
 
 app.use(express.urlencoded({ extended: true }));
 
@@ -24,7 +34,7 @@ app.get("/urls.json", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
-  res.render('urls_index', templateVars);
+  res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
@@ -40,7 +50,6 @@ app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
   res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
-
 
 // app.get("/hello", (req, res) => {
 //   res.send("<html><body>Hello <b>World</b></body></html>\n");
