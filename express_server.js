@@ -2,33 +2,33 @@ const express = require("express");
 const app = express();
 const PORT = 8000;
 
+app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
+function generateRandomString() {
+  const uniqueId = Math.random().toString(36).substring(2,8);
+  return uniqueId;
+}
+
+app.listen(PORT, () => {
+  console.log(`TinyApp listening on port ${PORT}!`);
+});
+
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
+  "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
 
-// app.get("/", (req, res) => {
-//   res.send("Hello!");urls
-// });
-
-function generateRandomString() {
-  let randomString = "";
-  const stringLength = 6;
-  const letters = "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  for (let i = 0; i < stringLength; i++) {
-    const ranChar = Math.random() * letters.length;
-    randomString += letters.charAt(ranChar);
-  }
-
-  return randomString;
-}
-
-app.use(express.urlencoded({ extended: true }));
-
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
+});
+
+app.get("/urls/show", (req, res) => {
+  res.render("urls_show");
+})
+
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
 });
 
 app.get("/urls", (req, res) => {
@@ -36,26 +36,32 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+app.get("/urls/:id", (req, res) => {
+const Id = req.params.id;
+const URL = urlDatabase[Id]
+console.log(URL);
+const templateVars = { id: req.params.id, longURL: URL };
+res.render("urls_show", templateVars);
 });
+
+// app.get("/urls/:id", (req, res) => {
+//   const { id } = req.params;
+//   const longURL = urlDatabase[id];
+//   const templateVars = { id, longURL };
+//   if (!longURL) {
+//     return res.status(404).send("URL not found");
+//   }
+//   return res.redirect(longURL); // this should be a render
+// });
+
+
 
 app.post("/urls", (req, res) => {
   const { longURL } = req.body;
   const id = generateRandomString();
   urlDatabase[id] = longURL;
   const templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars);
-});
-
-app.get("/urls/:id", (req, res) => {
-  const { id } = req.params;
-  const longURL = urlDatabase[id];
-  const templateVars = { id, longURL };
-  if (!longURL) {
-    res.status(404).send("URL not found");
-  }
-  res.redirect(longURL);
+  return res.render("urls_index", templateVars); // this should be a redirect
 });
 
 app.post("/urls/:id/delete", (req, res) => {
@@ -64,16 +70,20 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-app.post("/urls/:id/edit", (req, res) => {
+app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
+  const updatedLongUrl = req.body.longURL
   
-  res.redirect("/urls_new");
+  return res.redirect("/urls");
 });
 
-// app.get("/hello", (req, res) => {
-//   res.send("<html><body>Hello <b>World</b></body></html>\n");
-// });
+app.post("/urls/:id/new", (req, res) => {
+  const id = req.params.id;
 
-app.listen(PORT, () => {
-  console.log(`TinyApp listening on port ${PORT}!`);
+
+  return app.redirect("/ursl/show", templateVars);
 });
+
+
+
+
