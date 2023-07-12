@@ -16,7 +16,7 @@ const urlDatabase = {
 function generateRandomString() {
   let randomString = "";
   const stringLength = 6;
-  const letters = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const letters = "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   for (let i = 0; i < stringLength; i++) {
     const ranChar = Math.random() * letters.length;
     randomString += letters.charAt(ranChar);
@@ -62,6 +62,12 @@ app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
   delete urlDatabase[id];
   res.redirect("/urls");
+});
+
+app.post("/urls/:id/edit", (req, res) => {
+  const id = req.params.id;
+  
+  res.redirect("/urls_new");
 });
 
 // app.get("/hello", (req, res) => {
