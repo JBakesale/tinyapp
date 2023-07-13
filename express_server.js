@@ -13,7 +13,9 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 function generateRandomString(length) {
-  const uniqueId = Math.random().toString(36).substring(2, length + 2);
+  const uniqueId = Math.random()
+    .toString(36)
+    .substring(2, length + 2);
   return uniqueId;
 }
 
@@ -82,12 +84,25 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  const { newUrl } = req.body; //fix this
+  
+  const { newUrl } = req.body;
   const shortId = req.params.id;
-  console.log(shortId);
-  console.log(urlDatabase[shortId]);
+  
+  urlDatabase[shortId] = newUrl;
+  console.log(urlDatabase);
 
   return res.redirect("/urls");
+
+
+  // const id = generateRandomString(3);
+  // const newUser = {
+  //   id: id,
+  //   username: username,
+  //   password: password,
+  // };
+
+  // urlDatabase[shortId] = newUrl;
+  // console.log(users);
 });
 
 // app.post("/urls/:id/new", (req, res) => {
@@ -163,10 +178,11 @@ app.post("/login", (req, res) => {
   res.cookie("userId", foundUser.id);
   res.redirect("/protected");
 });
+
 app.post("/logout", (req, res) => {
   res.clearCookie("userId");
-
-  return res.redirect("/login");
+//this redirect is not working and page instead redirects to /protected
+  return res.redirect("urls_login");
 });
 
 app.post("/register", (req, res) => {
@@ -187,7 +203,7 @@ app.post("/register", (req, res) => {
   }
 
   if (foundUser) {
-    return res.status(400).send('A user with that username already exists')
+    return res.status(400).send("A user with that username already exists");
   }
 
   //use this for the create new url edit
@@ -195,16 +211,14 @@ app.post("/register", (req, res) => {
   const newUser = {
     id: id,
     username: username,
-    password: password
+    password: password,
   };
 
   users[id] = newUser;
   console.log(users);
 
+  // do we set the cookie?
 
-
-   // do we set the cookie?
-
-   // redirect
-  return res.redirect("/");
+  // redirect
+  return res.redirect("/login");
 });
