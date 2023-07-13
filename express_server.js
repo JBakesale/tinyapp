@@ -23,8 +23,15 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get("/urls/show", (req, res) => {
-  res.render("urls_show");
+app.get("/urls/:id/show", (req, res) => {
+  const TinyURL = urlDatabase.req.params;
+  const longURL = urlDatabase[TinyURL];
+  const templateVars = 
+  { TinyURL: TinyURL,
+    longURL: longURL
+  }
+  console.log(templateVars);
+  return res.render("urls_show", templateVars);
 })
 
 app.get("/urls/new", (req, res) => {
@@ -37,10 +44,10 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-const Id = req.params.id;
-const URL = urlDatabase[Id]
-console.log(URL);
-const templateVars = { id: req.params.id, longURL: URL };
+const shortId = req.params.id;
+const longURL = urlDatabase[shortId]
+
+const templateVars = { id: shortId, longURL };
 res.render("urls_show", templateVars);
 });
 
@@ -70,19 +77,19 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+app.post("/urls/:id/new", (req, res) => {
+  const shortId = req.params.id;
+
+  return app.redirect("/ursl/show", templateVars);
+});
+
 app.post("/urls/:id", (req, res) => {
-  const id = req.params.id;
+  const id = req.body
   const updatedLongUrl = req.body.longURL
   
   return res.redirect("/urls");
 });
 
-app.post("/urls/:id/new", (req, res) => {
-  const id = req.params.id;
-
-
-  return app.redirect("/ursl/show", templateVars);
-});
 
 
 
