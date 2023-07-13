@@ -12,12 +12,16 @@ app.use(cookieParser());
 // configuration
 app.set("view engine", "ejs");
 
+// functions
 function generateRandomString(length) {
   const uniqueId = Math.random()
     .toString(36)
     .substring(2, length + 2);
   return uniqueId;
 }
+// implement tmrw
+const findUser = () => {};
+
 
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
@@ -28,8 +32,21 @@ const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
+const users = {
+  abc: {
+    id: "abc",
+    username: "alice",
+    password: "1234",
+  },
+  def: {
+    id: "def",
+    username: "bob",
+    password: "5678",
+  },
+};
 
-//GET
+
+// GET
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -58,74 +75,7 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// app.get("/urls/:id", (req, res) => {
-//   const { id } = req.params;
-//   const longURL = urlDatabase[id];
-//   const templateVars = { id, longURL };
-//   if (!longURL) {
-//     return res.status(404).send("URL not found");
-//   }
-//   return res.redirect(longURL); // this should be a render
-// });
-
-//POST
-app.post("/urls", (req, res) => {
-  const { longURL } = req.body;
-  const id = generateRandomString(6);
-  urlDatabase[id] = longURL;
-  const templateVars = { urls: urlDatabase };
-  return res.render("urls_index", templateVars); // this should be a redirect
-});
-
-app.post("/urls/:id/delete", (req, res) => {
-  const id = req.params.id;
-  delete urlDatabase[id];
-  res.redirect("/urls");
-});
-
-app.post("/urls/:id", (req, res) => {
-  
-  const { newUrl } = req.body;
-  const shortId = req.params.id;
-  
-  urlDatabase[shortId] = newUrl;
-  console.log(urlDatabase);
-
-  return res.redirect("/urls");
-
-
-  // const id = generateRandomString(3);
-  // const newUser = {
-  //   id: id,
-  //   username: username,
-  //   password: password,
-  // };
-
-  // urlDatabase[shortId] = newUrl;
-  // console.log(users);
-});
-
-// app.post("/urls/:id/new", (req, res) => {
-//   const id = req.params.id;
-
-//   return app.redirect("/ursl/show", templateVars);
-// });
-
-const users = {
-  abc: {
-    id: "abc",
-    username: "alice",
-    password: "1234",
-  },
-  def: {
-    id: "def",
-    username: "bob",
-    password: "5678",
-  },
-};
-
-//COOKIES         //(organize GETS && POSTS later)
-//GET /login
+// GET /new
 app.get("/login", (req, res) => {
   return res.render("urls_login");
 });
@@ -149,7 +99,34 @@ app.get("/register", (req, res) => {
   return res.render("urls_register");
 });
 
-//POST /login
+
+
+// POST
+app.post("/urls", (req, res) => {
+  const { longURL } = req.body;
+  const id = generateRandomString(6);
+  urlDatabase[id] = longURL;
+  const templateVars = { urls: urlDatabase };
+  return res.render("urls_index", templateVars); // this should be a redirect
+});
+
+app.post("/urls/:id/delete", (req, res) => {
+  const id = req.params.id;
+  delete urlDatabase[id];
+  res.redirect("/urls");
+});
+
+app.post("/urls/:id", (req, res) => {
+  const { newUrl } = req.body;
+  const shortId = req.params.id;
+
+  urlDatabase[shortId] = newUrl;
+  console.log(urlDatabase);
+
+  return res.redirect("/urls");
+});
+
+// POST /new
 app.post("/login", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
@@ -181,7 +158,7 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   res.clearCookie("userId");
-//this redirect is not working and page instead redirects to /protected
+  //this redirect is not working and page instead redirects to /protected
   return res.redirect("urls_login");
 });
 
@@ -222,3 +199,8 @@ app.post("/register", (req, res) => {
   // redirect
   return res.redirect("/login");
 });
+
+
+
+
+
