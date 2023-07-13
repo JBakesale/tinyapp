@@ -1,12 +1,17 @@
 const express = require("express");
+const morgan = require("morgan");
 const app = express();
 const PORT = 8000;
 
+// middleware
+app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
+
+// configuration
 app.set("view engine", "ejs");
 
 function generateRandomString() {
-  const uniqueId = Math.random().toString(36).substring(2,8);
+  const uniqueId = Math.random().toString(36).substring(2, 8);
   return uniqueId;
 }
 
@@ -19,13 +24,18 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+//GET
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get("/urls/show", (req, res) => {
-  res.render("urls_show");
-})
+app.get("/urls/:id/show", (req, res) => {
+  const TinyURL = urlDatabase.req.params;
+  const longURL = urlDatabase[TinyURL];
+  const templateVars = { TinyURL: TinyURL, longURL: longURL };
+  console.log(templateVars);
+  return res.render("urls_show", templateVars);
+});
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
@@ -37,11 +47,10 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-const Id = req.params.id;
-const URL = urlDatabase[Id]
-console.log(URL);
-const templateVars = { id: req.params.id, longURL: URL };
-res.render("urls_show", templateVars);
+  const shortId = req.params.id;
+  const longURL = urlDatabase[shortId];
+  const templateVars = { id: shortId, longURL };
+  res.render("urls_show", templateVars);
 });
 
 // app.get("/urls/:id", (req, res) => {
@@ -54,8 +63,7 @@ res.render("urls_show", templateVars);
 //   return res.redirect(longURL); // this should be a render
 // });
 
-
-
+//POST
 app.post("/urls", (req, res) => {
   const { longURL } = req.body;
   const id = generateRandomString();
@@ -71,19 +79,26 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  const id = req.params.id;
-  const updatedLongUrl = req.body.longURL
+  const { newUrl }  = req.body; //fix this
+  const shortId = req.params.id
+  console.log(shortId)
+  console.log(urlDatabase[shortId]);
+ 
   
   return res.redirect("/urls");
 });
 
-app.post("/urls/:id/new", (req, res) => {
-  const id = req.params.id;
+// app.post("/urls/:id/new", (req, res) => {
+//   const id = req.params.id;
 
+//   return app.redirect("/ursl/show", templateVars);
+// });
 
-  return app.redirect("/ursl/show", templateVars);
+//COOKIES         //(organize GETS && POSTS later)
+
+//GET login
+app.get("/login", (res, req) => {
+  res.render("urls_login");
 });
 
-
-
-
+//POST login
