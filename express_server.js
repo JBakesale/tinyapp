@@ -84,8 +84,13 @@ app.post("/urls/:id/new", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  const id = req.body
-  const updatedLongUrl = req.body.longURL
+  const { newUrl } = req.body //fix this
+  const shortId = req.params.id
+
+  urlDatabase = { 
+    shortId,
+    newUrl
+  }
   
   return res.redirect("/urls");
 });
