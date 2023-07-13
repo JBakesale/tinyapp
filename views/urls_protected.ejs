@@ -8,14 +8,15 @@
       integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
       crossorigin="anonymous"
     />
-    <title>Protected</title>
+    <title>Protected Page</title>
   </head>
 
   <body>
     <%- include('partials/_header') %>
-  <h2>This is a protected page</h2>
+    <h2>This is a protected page</h2>
+    <h3>You are logged in as <%= user.username %></h3>
 
-  <form method="POST" action="/login">
+    <!-- <form method="POST" action="/login">
     <label>Username</label>
     <input name="username"/>
     <br/>
@@ -23,7 +24,9 @@
     <input name="password" />
     <br/>
     <button type="submit">Login!</button>
-  </form>  
-
-</body>
+  </form>   -->
+  </body>
 </html>
+
+
+

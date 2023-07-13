@@ -7,6 +7,7 @@ const PORT = 8000;
 // middleware
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // configuration
 app.set("view engine", "ejs");
@@ -142,6 +143,20 @@ app.post("/login", (req, res) => {
   }
 
   res.cookie("userId", foundUser.id);
-
   res.redirect("/protected");
+});
+
+app.get("/protected", (req, res) => {
+  const userId = req.cookies.userId;
+
+  if (!userId) {
+    return res.status(401).send("You must be logged in to see this page");
+  }
+
+  const user = users[userId];
+  const templateVars = {
+    user,
+  };
+
+  res.render("urls_protected", templateVars);
 });
