@@ -91,6 +91,7 @@ app.post("/urls/:id", (req, res) => {
     shortId,
     newUrl
   }
+  app.send(urlDatabase);
   
   return res.redirect("/urls");
 });
