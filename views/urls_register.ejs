@@ -8,21 +8,22 @@
       integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
       crossorigin="anonymous"
     />
-    <title>Protected Page</title>
+    <title>Register</title>
   </head>
 
   <body>
     <%- include('partials/_header') %>
-    <h2>This is a protected page</h2>
-    <h3>You are logged in as <%= user.username %></h3>
-    
-<br/>
-    <form method="POST" actions="/logout">
-      <button type="submit">Logout</button>
-    </form>
+  <h2>Please register here</h2>
 
+  <form method="POST" action="/register">
+    <label>Username</label>
+    <input name="username"/>
+    <br/>
+    <label>Password</label>
+    <input name="password" />
+    <br/>
+    <button type="submit">Register!</button>
+  </form>  
 
-  </body>
+</body>
 </html>
-
-
