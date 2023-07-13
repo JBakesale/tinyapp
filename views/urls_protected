@@ -8,12 +8,12 @@
       integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
       crossorigin="anonymous"
     />
-    <title>Login</title>
+    <title>Protected</title>
   </head>
 
   <body>
     <%- include('partials/_header') %>
-  <h2>Login Below!</h2>
+  <h2>This is a protected page</h2>
 
   <form method="POST" action="/login">
     <label>Username</label>

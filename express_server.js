@@ -1,5 +1,6 @@
 const express = require("express");
 const morgan = require("morgan");
+const cookieParser = require("cookie-parser");
 const app = express();
 const PORT = 8000;
 
@@ -19,8 +20,9 @@ app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
 });
 
+// Databases
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
+  b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
 
@@ -79,12 +81,11 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  const { newUrl }  = req.body; //fix this
-  const shortId = req.params.id
-  console.log(shortId)
+  const { newUrl } = req.body; //fix this
+  const shortId = req.params.id;
+  console.log(shortId);
   console.log(urlDatabase[shortId]);
- 
-  
+
   return res.redirect("/urls");
 });
 
@@ -95,10 +96,52 @@ app.post("/urls/:id", (req, res) => {
 // });
 
 //COOKIES         //(organize GETS && POSTS later)
-
-//GET login
-app.get("/login", (res, req) => {
-  res.render("urls_login");
+//GET /login
+app.get("/login", (req, res) => {
+  return res.render("urls_login");
 });
 
-//POST login
+//temp database location
+const users = {
+  abc: {
+    id: "abc",
+    username: "alice",
+    password: "1234",
+  },
+  def: {
+    id: "def",
+    username: "bob",
+    password: "5678",
+  },
+};
+
+//POST /login
+app.post("/login", (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+
+  // test edge
+  if (!username || !password) {
+    return res.status(400).send("Please enter a username and password");
+  }
+
+  let foundUser = null;
+  for (const userId in users) {
+    const user = users[userId];
+    if (user.username === username) {
+      foundUser = user;
+    }
+  }
+
+  if (!foundUser) {
+    return res.status(400).send("No user with that username found");
+  }
+
+  if (foundUser.password !== password) {
+    return res.send("Wrong Password!");
+  }
+
+  res.cookie("userId", foundUser.id);
+
+  res.redirect("/protected");
+});
