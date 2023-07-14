@@ -30,6 +30,20 @@ const findUser = (email) => {
   return null;
 };
 
+const urlForUser = (userID) => {
+  const urls = {};
+  const ids = Object.keys(urlDatabase);
+
+  for (const id of ids) {
+    const url = urlDatabase[id];
+    if (url.userId === userID) {
+      urls[id] = url;
+    }
+  }
+
+  return urls;
+};
+
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
 });
@@ -63,7 +77,7 @@ app.get("/urls/:id/show", (req, res) => {
   const templateVars = {
     TinyURL: TinyURL,
     longURL: longURL,
-    username: req.cookies["username"],
+    email: req.cookies["email"],
   };
   console.log(templateVars);
   return res.render("urls_show", templateVars);
@@ -74,14 +88,32 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, email: req.cookies["email"] };
+  const userId = req.cookies.userId;
+  const user = users[userId];
+
+  if (!user) {
+    res.send(
+      "You must be logged in to view this page. <a href='/login'>Login here.</a>"
+    );
+  }
+
+  const templateVars = {
+    urls: urlDatabase,
+    email: req.cookies["email"],
+  };
+
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
   const shortId = req.params.id;
   const longURL = urlDatabase[shortId];
-  const templateVars = { id: shortId, longURL };
+  const templateVars = {
+    id: shortId,
+    longURL,
+    email: req.cookies["email"],
+  };
+
   res.render("urls_show", templateVars);
 });
 
@@ -148,30 +180,36 @@ app.post("/login", (req, res) => {
 
   // test edge cases
   if (!email || !password) {
-    return res.status(400).send("Please enter a valid email or password");
+    return res
+      .status(400)
+      .send("Something went wrong. <a href='/login'>Please try again.</a>");
   }
 
   const foundUser = findUser(email);
 
   // keep status vague for security
   if (!foundUser) {
-    return res.status(400).send("Please enter a valid email or password");
+    return res
+      .status(400)
+      .send("Something went wrong. <a href='/login'>Please try again</a>");
   }
 
   if (foundUser.password !== password) {
-    return res.send("Please enter a valid email or PASSWORD");
+    return res.send(
+      "Something went wrong. <a href='/login'>Please try again</a>"
+    );
   }
-  //happy path
-  res.cookie("userId", foundUser.id);
+
+  res.cookie("us//happy patherId", foundUser.id); // too many cookies!
   res.cookie("email", foundUser.email);
 
-  //implement templateVars and redirect to /urls
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("userId");
-  //this redirect is not working and page instead redirects to /protected
+  // clear email cookie as well, or refactor to only 1 cookie
+
   return res.redirect("urls_login");
 });
 
@@ -180,14 +218,18 @@ app.post("/register", (req, res) => {
   const password = req.body.password;
 
   if (!email || !password) {
-    return res.status(400).send("Please provide a valid email and password");
+    return res
+      .status(400)
+      .send("No input detected. <a href='/register'>Please try again</a>");
   }
 
   const foundUser = findUser(email);
 
   // keep response vague for security
   if (foundUser) {
-    return res.status(400).send("Please enter a valid EMAIL and password");
+    return res
+      .status(400)
+      .send("Something went wrong. <a href='/register'>Please try again</a>");
   }
 
   //use this for the create new url edit
