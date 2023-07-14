@@ -19,9 +19,16 @@ function generateRandomString(length) {
     .substring(2, length + 2);
   return uniqueId;
 }
-// implement tmrw
-const findUser = () => {};
+const findUser = (email) => {
+  for (const userId in users) {
+    const user = users[userId];
+    if (user.email === email) {
+      return user;
+    }
+  }
 
+  return null;
+};
 
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
@@ -35,16 +42,15 @@ const urlDatabase = {
 const users = {
   abc: {
     id: "abc",
-    username: "alice",
+    email: "alice@a.com",
     password: "1234",
   },
   def: {
     id: "def",
-    username: "bob",
+    username: "bob@b.com",
     password: "5678",
   },
 };
-
 
 // GET
 app.get("/urls.json", (req, res) => {
@@ -54,7 +60,11 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls/:id/show", (req, res) => {
   const TinyURL = urlDatabase.req.params;
   const longURL = urlDatabase[TinyURL];
-  const templateVars = { TinyURL: TinyURL, longURL: longURL };
+  const templateVars = {
+    TinyURL: TinyURL,
+    longURL: longURL,
+    username: req.cookies["username"],
+  };
   console.log(templateVars);
   return res.render("urls_show", templateVars);
 });
@@ -75,11 +85,11 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// GET /new
 app.get("/login", (req, res) => {
   return res.render("urls_login");
 });
 
+//will be getting rid of this page
 app.get("/protected", (req, res) => {
   const userId = req.cookies.userId;
 
@@ -99,13 +109,12 @@ app.get("/register", (req, res) => {
   return res.render("urls_register");
 });
 
-
-
 // POST
 app.post("/urls", (req, res) => {
   const { longURL } = req.body;
   const id = generateRandomString(6);
   urlDatabase[id] = longURL;
+
   const templateVars = { urls: urlDatabase };
   return res.render("urls_index", templateVars); // this should be a redirect
 });
@@ -126,33 +135,30 @@ app.post("/urls/:id", (req, res) => {
   return res.redirect("/urls");
 });
 
-// POST /new
 app.post("/login", (req, res) => {
-  const username = req.body.username;
+  const email = req.body.email;
   const password = req.body.password;
 
   // test edge cases
-  if (!username || !password) {
-    return res.status(400).send("Please enter a username and password");
+  if (!email || !password) {
+    return res.status(400).send("Please enter a valid email or password");
   }
 
-  let foundUser = null;
-  for (const userId in users) {
-    const user = users[userId];
-    if (user.username === username) {
-      foundUser = user;
-    }
-  }
+  const foundUser = findUser(email);
 
+  // keep status vague for security
   if (!foundUser) {
-    return res.status(400).send("No user with that username found");
+    return res.status(400).send("Please enter a valid email or password");
   }
 
   if (foundUser.password !== password) {
-    return res.send("Wrong Password!");
+    return res.send("Please enter a valid email or PASSWORD");
   }
   //happy path
   res.cookie("userId", foundUser.id);
+  res.cookie("email", foundUser.email);
+
+  //implement templateVars and redirect to /urls
   res.redirect("/protected");
 });
 
@@ -163,44 +169,31 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const username = req.body.username;
+  const email = req.body.email;
   const password = req.body.password;
 
-  if (!username || !password) {
-    return res.status(400).send("Please provide a username and password");
+  if (!email || !password) {
+    return res.status(400).send("Please provide a valid email and password");
   }
 
-  //turn this into a function above with functions
-  let foundUser = null;
-  for (const userId in users) {
-    const user = users[userId];
-    if (user.username === username) {
-      foundUser = user;
-    }
-  }
+  const foundUser = findUser(email);
 
+  // keep response vague for security
   if (foundUser) {
-    return res.status(400).send("A user with that username already exists");
+    return res.status(400).send("Please enter a valid EMAIL and password");
   }
 
   //use this for the create new url edit
   const id = generateRandomString(3);
   const newUser = {
     id: id,
-    username: username,
+    email: email,
     password: password,
   };
 
   users[id] = newUser;
+  // this is a test console log, remove later
   console.log(users);
 
-  // do we set the cookie?
-
-  // redirect
   return res.redirect("/login");
 });
-
-
-
-
-
