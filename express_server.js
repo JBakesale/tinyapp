@@ -2,7 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const app = express();
-const PORT = 8000;
+const PORT = 3333;
 
 // middleware
 app.use(morgan("dev"));
@@ -74,7 +74,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase, email: req.cookies["email"] };
   res.render("urls_index", templateVars);
 });
 
@@ -86,6 +86,13 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
+  const userId = req.cookies.userId;
+  const user = users[userId];
+
+  if (user) {
+    return res.redirect("/urls");
+  }
+
   return res.render("urls_login");
 });
 
@@ -159,7 +166,7 @@ app.post("/login", (req, res) => {
   res.cookie("email", foundUser.email);
 
   //implement templateVars and redirect to /urls
-  res.redirect("/protected");
+  res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {

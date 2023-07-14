@@ -13,14 +13,16 @@
 
   <body>
     <%- include('partials/_header') %>
-  <h2>Login Below!</h2>
+  <h2>Login</h2>
 
   <form method="POST" action="/login">
-    <label>Username</label>
-    <input name="username"/>
+    <label>Email Address:</label>
     <br/>
-    <label>Password</label>
-    <input name="password" />
+    <input type="email" placeholder="Enter Email" name="email"/>
+    <br/>
+    <label>Password:</label>
+    <br/>
+    <input type="password" placeholder="Enter Password" name="password" />
     <br/>
     <button type="submit">Login!</button>
   </form>  
