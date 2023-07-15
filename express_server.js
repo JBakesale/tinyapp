@@ -30,17 +30,17 @@ const findUser = (email) => {
   return null;
 };
 
-const urlForUser = (userID) => {
+const userUrls = (inputUserId) => {
   const urls = {};
   const ids = Object.keys(urlDatabase);
 
   for (const id of ids) {
     const url = urlDatabase[id];
-    if (url.userId === userID) {
+    if (url.userId === inputUserId) {
       urls[id] = url;
     }
   }
-
+//fix this
   return urls;
 };
 
@@ -52,7 +52,10 @@ app.listen(PORT, () => {
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
+  abc: "http://www.netflix.com",
+  def: "http://tsn.com",
 };
+
 const users = {
   abc: {
     id: "abc",
@@ -61,7 +64,7 @@ const users = {
   },
   def: {
     id: "def",
-    username: "bob@b.com",
+    email: "bob@b.com",
     password: "5678",
   },
 };
@@ -77,7 +80,7 @@ app.get("/urls/:id/show", (req, res) => {
   const templateVars = {
     TinyURL: TinyURL,
     longURL: longURL,
-    email: req.cookies["email"],
+    // email: req.cookies["email"],
   };
   console.log(templateVars);
   return res.render("urls_show", templateVars);
@@ -97,9 +100,12 @@ app.get("/urls", (req, res) => {
     );
   }
 
+  console.log(userId);
+
   const templateVars = {
     urls: urlDatabase,
-    email: req.cookies["email"],
+    user,
+    // email: req.cookies["email"],
   };
 
   res.render("urls_index", templateVars);
@@ -111,7 +117,7 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = {
     id: shortId,
     longURL,
-    email: req.cookies["email"],
+    // email: req.cookies["email"],
   };
 
   res.render("urls_show", templateVars);
@@ -200,8 +206,8 @@ app.post("/login", (req, res) => {
     );
   }
 
-  res.cookie("us//happy patherId", foundUser.id); // too many cookies!
-  res.cookie("email", foundUser.email);
+  res.cookie("userId", foundUser.id); // too many cookies!
+  // res.cookie("email", foundUser.email);
 
   res.redirect("/urls");
 });
@@ -210,7 +216,7 @@ app.post("/logout", (req, res) => {
   res.clearCookie("userId");
   // clear email cookie as well, or refactor to only 1 cookie
 
-  return res.redirect("urls_login");
+  return res.redirect("/login");
 });
 
 app.post("/register", (req, res) => {
@@ -243,6 +249,6 @@ app.post("/register", (req, res) => {
   users[id] = newUser;
   // this is a test console log, remove later
   console.log(users);
-
+  res.cookie("userId", newUser.id);
   return res.redirect("/login");
 });
