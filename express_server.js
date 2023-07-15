@@ -29,20 +29,22 @@ const findUser = (email) => {
 
   return null;
 };
-
-const userUrls = (inputUserId) => {
+const userUrls = (userId) => {
   const urls = {};
   const ids = Object.keys(urlDatabase);
 
+  console.log("ids:", ids);
+
   for (const id of ids) {
     const url = urlDatabase[id];
-    if (url.userId === inputUserId) {
+    if (id === userId) {
       urls[id] = url;
     }
   }
-//fix this
+  //almost works but doesn't display more than one url!!
   return urls;
 };
+
 
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
@@ -51,9 +53,9 @@ app.listen(PORT, () => {
 // Databases
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
-  abc: "http://www.netflix.com",
-  def: "http://tsn.com",
+  def: "http://www.google.com",
+  def: "http://www.netflix.com",
+  def: "http://www.tsn.com",
 };
 
 const users = {
@@ -99,11 +101,16 @@ app.get("/urls", (req, res) => {
       "You must be logged in to view this page. <a href='/login'>Login here.</a>"
     );
   }
+  // console.log("userId", userId);
+  // console.log("users[userId]", user);
 
-  console.log(userId);
+  const urls = userUrls(userId);
+  console.log("urls:", urls);
+  // userUrls(userId);
+  // console.log(userId);
 
   const templateVars = {
-    urls: urlDatabase,
+    urls,
     user,
     // email: req.cookies["email"],
   };
