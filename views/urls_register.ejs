@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+      integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
+      crossorigin="anonymous"
+    />
+    <title>Registration Page</title>
+  </head>
+
+  <body>
+    <%- include('partials/_header') %>
+    <h2>Please Register Here</h2>
+
+    <form method="POST" action="/register">
+      <label>Email Address:</label>
+      <br />
+      <input type="email" placeholder="Enter Email" name="email" />
+      <br />
+      <label>Enter Password:</label>
+      <br/>
+      <input type="password" placeholder="Create Password" name="password" />
+      <br />
+      <button type="submit">Register Now!</button>
+    </form>
+  </body>
+</html>
