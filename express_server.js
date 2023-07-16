@@ -2,15 +2,28 @@
 
 const express = require("express");
 const morgan = require("morgan");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 3333;
 
+
+
+
+
+
+
+
 // Middleware
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(
+  cookieSession({
+    name: "session",
+    keys: ["pepper", 33],
+    maxAge: 24 * 60 * 60 * 1000,
+  })
+);
 
 // Configuration
 app.set("view engine", "ejs");
