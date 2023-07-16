@@ -1,6 +1,7 @@
 const express = require("express");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
+const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 3333;
 
@@ -12,7 +13,7 @@ app.use(cookieParser());
 // configuration
 app.set("view engine", "ejs");
 
-// functions
+// functions => move all over to helpers.js at the end and require('/helpers.js)
 function generateRandomString(length) {
   const uniqueId = Math.random()
     .toString(36)
@@ -29,7 +30,7 @@ const getUserByEmail = function (email, database) {
   }
 
   return null;
-}; // this function hasn't been used... do i need it? >> check later
+}; // this function hasn't been used... do i need it? >> check later and replace findUser eventually
 
 const findUser = (email) => {
   for (const userId in users) {
@@ -80,12 +81,12 @@ const users = {
   aJ48lW: {
     id: "aJ48lW",
     email: "alice@a.com",
-    password: "1234",
+    password: bcrypt.hashSync("lilbandit", 10),
   },
   def: {
     id: "def",
     email: "bob@b.com",
-    password: "5678",
+    password: "$2b$12$DCMzn1YLRocNWAB0acDzYOf827/cqZLUb8.mB1.oQJzhC0H7rCUTS",
   },
 };
 
@@ -229,7 +230,7 @@ app.post("/urls/:id", (req, res) => {
 
 app.post("/login", (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
+  const password = bcrypt.hashSync(req.body.password, 10);
 
   // test edge cases
   if (!email || !password) {
@@ -268,7 +269,8 @@ app.post("/logout", (req, res) => {
 
 app.post("/register", (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
+  // const password = req.body.password;
+  const password = bcrypt.hashSync(req.body.password, 10);
 
   if (!email || !password) {
     return res
@@ -286,7 +288,7 @@ app.post("/register", (req, res) => {
   }
 
   //use this for the create new url edit
-  const id = generateRandomString(3);
+  const id = generateRandomString(6);
   const newUser = {
     id: id,
     email: email,
