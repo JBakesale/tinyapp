@@ -7,13 +7,6 @@ const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 3333;
 
-// Function Imports:
-const {
-  getUserByEmail,
-  generateRandomString,
-  urlsForUser,
-} = require("./helpers");
-
 // Middleware
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
@@ -37,7 +30,6 @@ const urlDatabase = {
     userID: "aJ48lW",
   },
 };
-
 const users = {
   abc: {
     id: "abc",
@@ -47,8 +39,32 @@ const users = {
   aJ48lW: {
     id: "aJ48lW",
     email: "bob@b.com",
-    password: "$2b$12$DCMzn1YLRocNWAB0acDzYOf827/cqZLUb8.mB1.oQJzhC0H7rCUTS",
+    password: '1234',
   },
+};
+
+// Function Imports:
+const { generateRandomString } = require("./helpers");
+// Local Functions
+const urlsForUser = (userId) => {
+  const urls = {};
+  for (const urlId in urlDatabase) {
+    const urlEntry = urlDatabase[urlId];
+    if (urlEntry.userID === userId) {
+      urls[urlId] = urlEntry.longURL;
+    }
+  }
+  return urls;
+};
+const getUserByEmail = (email, database) => {
+  for (const urlId in database) {
+    const urlEntry = database[urlId];
+    if (urlEntry.email === email) {
+      return urlEntry.userID;
+    }
+  }
+
+  return null;
 };
 
 // GET
@@ -156,6 +172,7 @@ app.get("/register", (req, res) => {
   return res.render("urls_register");
 });
 
+
 // POST
 app.post("/urls", (req, res) => {
   const { longURL } = req.body;
@@ -190,27 +207,29 @@ app.post("/urls/:id", (req, res) => {
 
 app.post("/login", (req, res) => {
   const email = req.body.email;
-  const password = bcrypt.hashSync(req.body.password, 10);
+  console.log(email); //test
+  const password = req.body.password;
 
   // test edge cases
   if (!email || !password) {
     return res
       .status(400)
-      .send("Something went wrong. <a href='/login'>Please try again.</a>");
+      .send("Something went wrong (nothing entered). <a href='/login'>Please try again.</a>");
   }
 
   const foundUser = getUserByEmail(email, urlDatabase);
+  console.log(foundUser); //test
 
   // keep status vague for security
   if (!foundUser) {
     return res
       .status(400)
-      .send("Something went wrong. <a href='/login'>Please try again</a>");
+      .send("Something went wrong (no user). <a href='/login'>Please try again</a>");
   }
 
   if (foundUser.password !== password) {
     return res.send(
-      "Something went wrong. <a href='/login'>Please try again</a>"
+      "Something went wrong (wrong password). <a href='/login'>Please try again</a>"
     );
   }
 
