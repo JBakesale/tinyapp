@@ -7,13 +7,6 @@ const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 3333;
 
-
-
-
-
-
-
-
 // Middleware
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
@@ -36,7 +29,7 @@ app.listen(PORT, () => {
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
+    userID: "abc",
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
@@ -52,12 +45,13 @@ const users = {
   aJ48lW: {
     id: "aJ48lW",
     email: "bob@b.com",
-    password: '1234',
+    password: "1234",
   },
 };
 
 // Function Imports:
 const { generateRandomString } = require("./helpers");
+
 // Local Functions
 const urlsForUser = (userId) => {
   const urls = {};
@@ -70,10 +64,10 @@ const urlsForUser = (userId) => {
   return urls;
 };
 const getUserByEmail = (email, database) => {
-  for (const urlId in database) {
-    const urlEntry = database[urlId];
-    if (urlEntry.email === email) {
-      return urlEntry.userID;
+  for (const id in database) {
+    const entry = database[id];
+    if (entry.email === email) {
+      return entry;
     }
   }
 
@@ -87,10 +81,14 @@ app.get("/urls.json", (req, res) => {
 
 app.get("/urls/:id/show", (req, res) => {
   const TinyURL = urlDatabase.req.params;
-  const longURL = urlDatabase[TinyURL];
+  const longURL = urlDatabase[TinyURL].longURL;
+  const userId = req.session.userId;
+  const user = users[userId]; 
+
   const templateVars = {
-    TinyURL: TinyURL,
-    longURL: longURL,
+    TinyURL,
+    longURL,
+    user
     // will likely need to be updated post database update
   };
   console.log(templateVars);
@@ -98,11 +96,26 @@ app.get("/urls/:id/show", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const userId = req.session.userId;
+  const user = users[userId];
+  const urls = urlDatabase
+
+  if (!user) {
+    res.send(
+      "You must be logged in to view this page. <a href='/login'>Login here.</a>"
+    );
+  }
+
+  const templateVars = {
+    urls,
+    user,
+  };
+
+  res.render("urls_new", templateVars);
 });
 
 app.get("/urls", (req, res) => {
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
   const user = users[userId];
 
   if (!user) {
@@ -110,14 +123,11 @@ app.get("/urls", (req, res) => {
       "You must be logged in to view this page. <a href='/login'>Login here.</a>"
     );
   }
-  // console.log("userId", userId);
-  // console.log("users[userId]", user);
 
   const urls = urlsForUser(userId);
   console.log("urls:", urls);
 
-  // userUrls(userId);
-  // console.log(userId);
+
 
   const templateVars = {
     urls,
@@ -129,20 +139,29 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
   const user = users[userId];
   if (!user) {
     res.send(
       "You must be logged in to view this page. <a href='/login'>Login here.</a>"
     );
   }
+
+ 
+
   const shortId = req.params.id;
-  const longURL = urlDatabase[shortId];
+   if (!urlDatabase[shortId]) {
+    return res.send("Url does not exist. <a href='/urls'>View Urls.</a>");
+  }
+  
+  const longURL = urlDatabase[shortId].longURL;
   const templateVars = {
     id: shortId,
     longURL,
+    user
     // this will also likely need to be updated post urlDatabase update
   };
+
 
   // POST /urls/:id should return a relevant error message if id does not exist
   // POST /urls/:id should return a relevant error message if the user is not logged in
@@ -155,19 +174,23 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
   const user = users[userId];
 
   if (user) {
     return res.redirect("/urls");
   }
 
-  return res.render("urls_login");
+  const templateVars = {
+    user,
+  };
+
+  return res.render("urls_login", templateVars);
 });
 
 //will be getting rid of this page
 app.get("/protected", (req, res) => {
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
 
   if (!userId) {
     return res.status(401).send("You must be logged in to see this page");
@@ -185,15 +208,22 @@ app.get("/register", (req, res) => {
   return res.render("urls_register");
 });
 
-
 // POST
 app.post("/urls", (req, res) => {
   const { longURL } = req.body;
   const id = generateRandomString(6);
-  urlDatabase[id] = longURL;
+  const userId = req.session.userId;
+  const user = users[userId];
+
+  if (!user) {
+    return res.send(
+      "You must be logged in to view this page. <a href='/login'>Login here.</a>"
+    );
+  }
+  urlDatabase[id] = { longURL, userID: userId };
 
   const templateVars = { urls: urlDatabase };
-  return res.render("urls_index", templateVars); // this should be a redirect
+  return res.redirect("/urls");
 });
 
 app.post("/urls/:id/delete", (req, res) => {
@@ -205,14 +235,18 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id/new", (req, res) => {
   const shortId = req.params.id;
 
-  return app.redirect("/ursl/show", templateVars);
+  return app.redirect("/urls", templateVars);
 });
 
 app.post("/urls/:id", (req, res) => {
   const { newUrl } = req.body;
   const shortId = req.params.id;
 
-  urlDatabase[shortId] = newUrl;
+  if (!urlDatabase[shortId]) {
+    return res.send("Url does not exist. <a href='/urls'>View Urls.</a>")
+  }
+
+  urlDatabase[shortId].longURL = newUrl;
   console.log(urlDatabase);
 
   return res.redirect("/urls");
@@ -220,41 +254,42 @@ app.post("/urls/:id", (req, res) => {
 
 app.post("/login", (req, res) => {
   const email = req.body.email;
-  console.log(email); //test
   const password = req.body.password;
 
   // test edge cases
   if (!email || !password) {
     return res
       .status(400)
-      .send("Something went wrong (nothing entered). <a href='/login'>Please try again.</a>");
+      .send(
+        "Something went wrong (nothing entered). <a href='/login'>Please try again.</a>"
+      );
   }
 
-  const foundUser = getUserByEmail(email, urlDatabase);
+  const foundUser = getUserByEmail(email, users);
   console.log(foundUser); //test
 
   // keep status vague for security
   if (!foundUser) {
     return res
       .status(400)
-      .send("Something went wrong (no user). <a href='/login'>Please try again</a>");
+      .send(
+        "Something went wrong (no user). <a href='/login'>Please try again</a>"
+      );
   }
 
-  if (foundUser.password !== password) {
+  if (!bcrypt.compareSync(password, foundUser.password)) {
     return res.send(
       "Something went wrong (wrong password). <a href='/login'>Please try again</a>"
     );
   }
 
-  res.cookie("userId", foundUser.id); // too many cookies!
-  // res.cookie("email", foundUser.email);
+  req.session.userId = foundUser.id;
 
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("userId");
-  // clear email cookie as well, or refactor to only 1 cookie
+  req.session.userId = undefined
 
   return res.redirect("/login");
 });
@@ -290,6 +325,6 @@ app.post("/register", (req, res) => {
   users[id] = newUser;
   // this is a test console log, remove later
   console.log(users);
-  res.cookie("userId", newUser.id);
+  req.session.userId = newUser.id;
   return res.redirect("/login");
 });
