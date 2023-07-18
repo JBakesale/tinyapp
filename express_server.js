@@ -79,7 +79,6 @@ app.get("/urls/:id/show", (req, res) => {
     longURL,
     user,
   };
-  console.log(templateVars);
   return res.render("urls_show", templateVars);
 });
 
@@ -116,7 +115,7 @@ app.get("/urls", (req, res) => {
     urls,
     user,
   };
-  
+
   res.render("urls_index", templateVars);
 });
 
@@ -180,7 +179,6 @@ app.post("/urls", (req, res) => {
   }
   urlDatabase[id] = { longURL, userID: userId };
 
-  const templateVars = { urls: urlDatabase };
   return res.redirect("/urls");
 });
 
@@ -210,9 +208,7 @@ app.post("/login", (req, res) => {
   if (!email || !password) {
     return res
       .status(400)
-      .send(
-        "Something went wrong. <a href='/login'>Please try again.</a>"
-      );
+      .send("Something went wrong. <a href='/login'>Please try again.</a>");
   }
 
   const foundUser = getUserByEmail(email, users);
@@ -220,9 +216,7 @@ app.post("/login", (req, res) => {
   if (!foundUser) {
     return res
       .status(400)
-      .send(
-        "Something went wrong. <a href='/login'>Please try again</a>"
-      );
+      .send("Something went wrong. <a href='/login'>Please try again</a>");
   }
 
   if (!bcrypt.compareSync(password, foundUser.password)) {
