@@ -1,17 +1,23 @@
-
-
-function generateRandomString(length) {
+const generateRandomString = (length) => {
   const uniqueId = Math.random()
     .toString(36)
     .substring(2, length + 2);
+    
   return uniqueId;
 }
 
-module.exports = {
-  generateRandomString
+const getUserByEmail = (email, database) => {
+  for (const id in database) {
+    const entry = database[id];
+    if (entry.email === email) {
+      return entry;
+    }
+  }
+
+  return null;
 };
 
-// const {
-//   getUserByEmail,
-//   generateRandomString
-// } = require("./helpers");
+module.exports = {
+  generateRandomString,
+  getUserByEmail,
+};

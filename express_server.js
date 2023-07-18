@@ -1,5 +1,4 @@
 // Module Imports:
-
 const express = require("express");
 const morgan = require("morgan");
 const cookieSession = require("cookie-session");
@@ -50,7 +49,7 @@ const users = {
 };
 
 // Function Imports:
-const { generateRandomString } = require("./helpers");
+const { generateRandomString, getUserByEmail } = require("./helpers");
 
 // Local Functions
 const urlsForUser = (userId) => {
@@ -63,16 +62,6 @@ const urlsForUser = (userId) => {
   }
   return urls;
 };
-const getUserByEmail = (email, database) => {
-  for (const id in database) {
-    const entry = database[id];
-    if (entry.email === email) {
-      return entry;
-    }
-  }
-
-  return null;
-};
 
 // GET
 app.get("/urls.json", (req, res) => {
@@ -83,13 +72,12 @@ app.get("/urls/:id/show", (req, res) => {
   const TinyURL = urlDatabase.req.params;
   const longURL = urlDatabase[TinyURL].longURL;
   const userId = req.session.userId;
-  const user = users[userId]; 
+  const user = users[userId];
 
   const templateVars = {
     TinyURL,
     longURL,
-    user
-    // will likely need to be updated post database update
+    user,
   };
   console.log(templateVars);
   return res.render("urls_show", templateVars);
@@ -98,7 +86,7 @@ app.get("/urls/:id/show", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const userId = req.session.userId;
   const user = users[userId];
-  const urls = urlDatabase
+  const urls = urlDatabase;
 
   if (!user) {
     res.send(
@@ -123,18 +111,12 @@ app.get("/urls", (req, res) => {
       "You must be logged in to view this page. <a href='/login'>Login here.</a>"
     );
   }
-
   const urls = urlsForUser(userId);
-  console.log("urls:", urls);
-
-
-
   const templateVars = {
     urls,
     user,
-    // email: req.cookies["email"],
   };
-
+  
   res.render("urls_index", templateVars);
 });
 
@@ -147,28 +129,17 @@ app.get("/urls/:id", (req, res) => {
     );
   }
 
- 
-
   const shortId = req.params.id;
-   if (!urlDatabase[shortId]) {
+  if (!urlDatabase[shortId]) {
     return res.send("Url does not exist. <a href='/urls'>View Urls.</a>");
   }
-  
+
   const longURL = urlDatabase[shortId].longURL;
   const templateVars = {
     id: shortId,
     longURL,
-    user
-    // this will also likely need to be updated post urlDatabase update
+    user,
   };
-
-
-  // POST /urls/:id should return a relevant error message if id does not exist
-  // POST /urls/:id should return a relevant error message if the user is not logged in
-  // POST /urls/:id should return a relevant error message if the user does not own the URL
-  // POST /urls/:id/delete should return a relevant error message if id does not exist
-  // POST /urls/:id/delete should return a relevant error message if the user is not logged in
-  // POST /urls/:id/delete should return a relevant error message if the user does not own the URL.
 
   res.render("urls_show", templateVars);
 });
@@ -188,26 +159,13 @@ app.get("/login", (req, res) => {
   return res.render("urls_login", templateVars);
 });
 
-//will be getting rid of this page
-app.get("/protected", (req, res) => {
-  const userId = req.session.userId;
-
-  if (!userId) {
-    return res.status(401).send("You must be logged in to see this page");
-  }
-
-  const user = users[userId];
-  const templateVars = {
-    user,
-  };
-
-  return res.render("urls_protected", templateVars);
-});
-
 app.get("/register", (req, res) => {
-  return res.render("urls_register");
-});
+  const userId = req.session.userId;
+  const user = users[userId];
+  const templateVars = { user };
 
+  return res.render("urls_register", templateVars);
+});
 // POST
 app.post("/urls", (req, res) => {
   const { longURL } = req.body;
@@ -232,22 +190,15 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-app.post("/urls/:id/new", (req, res) => {
-  const shortId = req.params.id;
-
-  return app.redirect("/urls", templateVars);
-});
-
 app.post("/urls/:id", (req, res) => {
   const { newUrl } = req.body;
   const shortId = req.params.id;
 
   if (!urlDatabase[shortId]) {
-    return res.send("Url does not exist. <a href='/urls'>View Urls.</a>")
+    return res.send("URL does not exist. <a href='/urls'>View URLS.</a>");
   }
 
   urlDatabase[shortId].longURL = newUrl;
-  console.log(urlDatabase);
 
   return res.redirect("/urls");
 });
@@ -256,30 +207,27 @@ app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  // test edge cases
   if (!email || !password) {
     return res
       .status(400)
       .send(
-        "Something went wrong (nothing entered). <a href='/login'>Please try again.</a>"
+        "Something went wrong. <a href='/login'>Please try again.</a>"
       );
   }
 
   const foundUser = getUserByEmail(email, users);
-  console.log(foundUser); //test
 
-  // keep status vague for security
   if (!foundUser) {
     return res
       .status(400)
       .send(
-        "Something went wrong (no user). <a href='/login'>Please try again</a>"
+        "Something went wrong. <a href='/login'>Please try again</a>"
       );
   }
 
   if (!bcrypt.compareSync(password, foundUser.password)) {
     return res.send(
-      "Something went wrong (wrong password). <a href='/login'>Please try again</a>"
+      "Something went wrong. <a href='/login'>Please try again</a>"
     );
   }
 
@@ -289,14 +237,13 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  req.session.userId = undefined
-
+  // Clear cookies
+  req.session.userId = undefined;
   return res.redirect("/login");
 });
 
 app.post("/register", (req, res) => {
   const email = req.body.email;
-  // const password = req.body.password;
   const password = bcrypt.hashSync(req.body.password, 10);
 
   if (!email || !password) {
@@ -307,14 +254,13 @@ app.post("/register", (req, res) => {
 
   const foundUser = getUserByEmail(email, urlDatabase);
 
-  // keep response vague for security
   if (foundUser) {
     return res
       .status(400)
       .send("Something went wrong. <a href='/register'>Please try again</a>");
   }
 
-  //use this for the create new url edit
+  // Create new url edit
   const id = generateRandomString(6);
   const newUser = {
     id: id,
@@ -323,8 +269,6 @@ app.post("/register", (req, res) => {
   };
 
   users[id] = newUser;
-  // this is a test console log, remove later
-  console.log(users);
   req.session.userId = newUser.id;
   return res.redirect("/login");
 });
