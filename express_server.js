@@ -241,7 +241,7 @@ app.post("/login", (req, res) => {
 
 // Logout and nullify session credentials 
 app.post("/logout", (req, res) => {
-  req.session.userId = null;
+  req.session = null;
   return res.redirect("/login");
 });
 
