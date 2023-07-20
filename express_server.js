@@ -129,6 +129,27 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.get("/u/:id", (req, res) => {
+  const userId = req.session.userId;
+  const user = users[userId];
+  if (!user) {
+    res.send(
+      "You must be logged in to view this page. <a href='/login'>Login here.</a>"
+    );
+  }
+  const shortId = req.params.id;
+  if (!urlDatabase[shortId]) {
+    return res.send("Url does not exist. <a href='/urls'>View Urls.</a>");
+  }
+  const longURL = urlDatabase[shortId].longURL;
+  const templateVars = {
+    id: shortId,
+    longURL,
+    user,
+  };
+  res.render("urls_show", templateVars);
+});
+
 // Login Page
 app.get("/login", (req, res) => {
   const userId = req.session.userId;
